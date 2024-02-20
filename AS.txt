@@ -16,7 +16,6 @@ exposure<-exposure[,c("SNP","CHR","BP","A1","A2","beta","sebeta","pval.exposure"
 names(exposure)<-c("SNP","chr.exposure","pos.exposure","effect_allele.exposure","other_allele.exposure",
                       "beta.exposure","se.exposure","pval.exposure","id.exposure","eaf.exposure","MAF37.exposure")
 exposure$exposure<-"exposure"
-
 outcome<-fread("D:/Mendelian Date/KP.Format.GO.FILTER.GW.KneeOA.FULL.09052019.gz")
 head(outcome)
 outcome<-outcome[,c("SNPID","Chromosome","Position","EffectAllele","AlternateAllele","EffectAlleleFrequency","EffectSize.Beta","Pvalue","SampleSize")]
