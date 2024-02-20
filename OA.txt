@@ -1,0 +1,31 @@
+library(data.table)
+library(TwoSampleMR)
+exposure<-fread("D:/Mendelian Date/KP.Format.GO.FILTER.GW.KneeOA.FULL.09052019.gz")
+head(exposure)
+exposure<-subset(exposure,Pvalue<5e-8)
+hg37<-fread("D:/Mendelian Date/1000G.ref.full.hg19")
+head(hg37)
+exposure<-merge(exposure,hg37,by.x = c("Chromosome","Position"),by.y=c("CHR","BP"))
+
+exposure<-exposure[,c("Chromosome","Position","EffectAllele","AlternateAllele","EffectAlleleFrequency",
+                      "EffectSize.Beta","Pvalue","SampleSize","EffectSize.OR","SNP")]
+
+exposure$pval.exposure<-exposure$Pvalue
+exposure$id.exposure<-"exposure"
+exposure<-clump_data(exposure, clump_kb = 10000, clump_r2 = 0.001, clump_p1 = 1, 
+                     clump_p2 = 1, pop = "EUR")
+names(exposure)<-c("chr.exposure","pos.exposure","effect_allele.exposure","other_allele.exposure","eaf.exposure",
+                   "beta.exposure","pval","samplesize.exposure","EffectSize.OR","SNP","pval.exposure","id.exposure")
+
+exposure$se.exposure<-sqrt(((exposure$beta.exposure)^2)/qchisq(exposure$pval.exposure,1,lower.tail = F))
+exposure$exposure<-"exposure"
+outcome<-fread("D:/Mendelian Date/finngen_R9_I9_CORATHER.gz")
+head(outcome)
+names(outcome)<-c("chr.outcome","pos.outcome","other_allele.outcome","effect_allele.outcome","SNP","gene",
+                   "pval.outcome","mlogp","beta.outcome","se.outcome","eaf.outcome","af_alt_cases","af_alt_controls")
+outcome$outcome<-"outcome"
+outcome$id.outcome<-"outcome"
+mydata<-harmonise_data(exposure,outcome,action = 2)
+res<-mr(mydata)
+h<-mr_heterogeneity(mydata)
+p<-mr_pleiotropy_test(mydata)
